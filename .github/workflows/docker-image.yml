@@ -1,0 +1,42 @@
+name: Docker Image CI
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # - uses: actions/checkout@v4
+    # - name: Build the Docker image
+    #   run: docker build . --file caddy.Dockerfile --tag caddy:$(date +%s)
+
+    - name: Log into registry ${{ env.REGISTRY }}
+      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch,prefix=
+          type=ref,event=tag,prefix=
+          type=sha,format=short,prefix=
+          type=sha,format=long,prefix=
+
+    - name: Build and push Docker image
+      id: build-and-push
+      uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+      with:
+        context: .
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        provenance: false
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
