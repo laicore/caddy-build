@@ -10,10 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    # - uses: actions/checkout@v4
-    # - name: Build the Docker image
-    #   run: docker build . --file caddy.Dockerfile --tag caddy:$(date +%s)
-
     - name: Log into registry ${{ env.REGISTRY }}
       uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
       with:
@@ -41,5 +37,3 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         provenance: false
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
